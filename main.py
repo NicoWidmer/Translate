@@ -32,7 +32,7 @@ if timestamp_location:
 print(content)
 
 url = "https://api-free.Translate.com/v2/translate"
-auth_key = "secret!"
+auth_key = "8ce20a2c-0e86-4bba-6773-3be52ea7416e:fx"
 
 languages = ["DE", "ES", "FR", "IT", "JA", "PT-BR", "TR"]
 for language in languages:
