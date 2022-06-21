@@ -18,5 +18,6 @@ jobs:
       - name: Secrets
         env:
           AUTH_KEY: ${{ secrets.AUTH_KEY }}
-        
+        run:
+          python main.py
 
