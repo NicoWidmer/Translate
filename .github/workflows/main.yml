@@ -16,6 +16,7 @@ jobs:
 
     steps:
       - name: Secrets
-        with: # Set the secret as an input
-          auth_key: ${{ secrets.AUTH_KEY }}
+        env:
+          AUTH_KEY: ${{ secrets.AUTH_KEY }}
+        
 
