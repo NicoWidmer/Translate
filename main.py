@@ -6,7 +6,7 @@ import codecs
 import re
 
 
-class TextInput:
+class FileHandler:
     directory = ""
     file_name = ""
     file_extension = ""
@@ -21,31 +21,33 @@ class TextInput:
         source_file = io.open(source_file_string, mode="r", encoding="utf-8")
         self.text = source_file.read()
 
+    def write_to_file(self, text, language):
+        translated_file_path = self.file_name + language + ".txt"
+        if os.path.exists(translated_file_path):
+            os.remove(translated_file_path)
+        translated_file = codecs.open(translated_file_path, "w", "utf-8")
+        translated_file.write(text)
+        translated_file.close()
+
 
 class Translator:
     url = "https://api-free.deepl.com/v2/translate"
     auth_key = "8ce20a2c-0e86-4bba-6773-3be52ea7416e:fx"
-
+    stop_symbol = "🎵"
     music_content = ""
-    file_name = ""
-
-    def __init__(self, file_name):
-        self.file_name = file_name
 
     def extract_music_text(self, text):
         # Don't translate music information (description)
-        self.music_content = text.partition("🎵")[1] + text.partition("🎵")[2]
+        self.music_content = text.partition(self.stop_symbol)[1] + text.partition(self.stop_symbol)[2]
 
-    @staticmethod
-    def format_input_text(text):
+    def format_input_text(self, text):
         # Don't translate music information (description)
-        text = text.partition("🎵")[0]
+        text = text.partition(self.stop_symbol)[0]
 
         # Remove line breaks within sentences (translation)
         timestamp_regex = "0:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9],0:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9]"
         timestamp_location = re.search(timestamp_regex, text)
         if timestamp_location:
-            print(timestamp_location)
             text = text.replace("\n", " ")  # Remove all new lines and replace with empty string
             text = re.sub(r"(" + timestamp_regex + " " + ")(.)", r"\1\n\2",
                           text)  # Add back new line after each timestamp
@@ -69,7 +71,7 @@ class Translator:
                 "target_lang": language,
                 "text": text
             }
-        request = requests.post(url = self.url, data = data)
+        request = requests.post(url=self.url, data=data)
         translation = json.loads(request.text)["translations"][0]["text"]
 
         return translation
@@ -84,22 +86,14 @@ class Translator:
 
         return text
 
-    def write_to_file(self, text, language):
-        translated_file_path = self.file_name + language + ".txt"
-        if os.path.exists(translated_file_path):
-            os.remove(translated_file_path)
-        translated_file = codecs.open(translated_file_path, "w", "utf-8")
-        translated_file.write(text)
-        translated_file.close()
-
 
 def main():
-    text_input = TextInput()
-    text_input.get_input_text()
+    file_handler = FileHandler()
+    file_handler.get_input_text()
 
-    translator = Translator(text_input.file_name)
-    translator.extract_music_text(text_input.text)
-    formatted_text = translator.format_input_text(text_input.text)
+    translator = Translator()
+    translator.extract_music_text(file_handler.text)
+    formatted_text = translator.format_input_text(file_handler.text)
 
     print(formatted_text)
 
@@ -110,7 +104,7 @@ def main():
 
         print(translated_text)
 
-        translator.write_to_file(translated_text, language)
+        file_handler.write_to_file(translated_text, language)
 
 
 if __name__ == "__main__":
