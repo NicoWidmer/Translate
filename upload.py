@@ -4,7 +4,6 @@ from collections import namedtuple
 import googleapiclient.discovery
 import googleapiclient.errors
 from googleapiclient.http import MediaFileUpload
-from googleapiclient.errors import HttpError
 from google_auth_oauthlib.flow import InstalledAppFlow
 import secrets
 
@@ -24,9 +23,9 @@ class FileHandler:
     def load_files(self):
         files = os.listdir(self.directory)
         for file in files:
-            if "caption" in file:
+            if "caption" in file.lower():
                 file_type = "caption"
-            elif "description" in file:
+            elif "description" in file.lower():
                 file_type = "description"
             else:
                 continue
@@ -56,6 +55,7 @@ class YoutubeUploader:
     youtube = None
     replace_existing = None
     caption_list = None
+    descriptions = {}
 
     def __init__(self):
         self.state = secrets.token_urlsafe(16)
@@ -92,8 +92,7 @@ class YoutubeUploader:
         else:
             self.replace_existing = False
 
-    def upload(self, file):
-
+    def upload_caption(self, file):
         text_file = MediaFileUpload(file.Path)
 
         for caption in self.caption_list["items"]:
@@ -106,12 +105,13 @@ class YoutubeUploader:
                         body={"id": caption["id"]},
                         media_body=text_file
                     ).execute()
-                return
+                    return True
+                return False
 
         body = {
             "snippet": {
                 "language": file.Language,
-                "name": "Captions",
+                "name": "",
                 "videoId": self.video_id,
                 "isDraft": False
             }
@@ -121,6 +121,28 @@ class YoutubeUploader:
             body=body,
             media_body=text_file
         ).execute()
+        return True
+
+    def prepare_description_upload(self, file):
+        self.descriptions[file.Language] = {"description": file.Content}
+        return True
+
+    def upload_descriptions(self):
+        if not self.descriptions:
+            return False
+        body = {
+            "id": self.video_id,
+            "snippet": {
+                "title": "TEST",
+                "categoryId": 26,
+                "localized": self.descriptions
+            }
+        }
+        self.youtube.videos().update(
+            part="snippet",
+            body=body,
+        ).execute()
+        return True
 
 
 def main():
@@ -131,10 +153,29 @@ def main():
     youtube_uploader = YoutubeUploader()
 
     for file in file_handler.files:
+        uploaded = None
+        prepared = None
 
-        print("Processing file type: " + file.Type + " with language: " + file.Language)
+        print("Processing file type: '" + file.Type + "' with language: '" + file.Language + "'")
 
-        youtube_uploader.upload(file)
+        if file.Type == "caption":
+            uploaded = youtube_uploader.upload_caption(file)
+        elif file.Type == "description":
+            prepared = youtube_uploader.prepare_description_upload(file)
+        else:
+            raise("Error - Invalid file type: '" + file.Type + "' of file: '" + file.Path + "'")
+
+        if uploaded:
+            print("File with type: '" + file.Type + "' and language: '" + file.Language + "' successfully uploaded")
+        elif uploaded is False:
+            print("File with type: '" + file.Type + "' and language: '" + file.Language + "' not uploaded")
+
+        if prepared:
+            print("File with type: '" + file.Type + "' and language: '" + file.Language + "' prepared for upload")
+
+    uploaded = youtube_uploader.upload_descriptions()
+    if uploaded:
+        print("Description files successfully uploaded")
 
 
 if __name__ == "__main__":
