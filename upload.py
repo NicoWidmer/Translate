@@ -7,6 +7,22 @@ from googleapiclient.http import MediaFileUpload
 from google_auth_oauthlib.flow import InstalledAppFlow
 import secrets
 
+'''
+Add more entries to support additional languages to upload
+Key: Language code in file name (DeepL language code)
+Value: Youtube language code
+'''
+LANGUAGES = {
+    "DE": "de",
+    "ES": "es",
+    "FR": "fr",
+    "IT": "it",
+    "JA": "ja",
+    "PT-BR": "pt-Br",
+    "TR": "tr",
+    "ZH": "zh-Hans"
+}
+
 SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
 File = namedtuple("File", ["Path", "Type", "Language", "Content"])
@@ -18,6 +34,7 @@ class FileHandler:
 
     def get_input_directory(self):
         self.directory = input("Enter full path of directory, of files, which need to be uploaded to Youtube: ")
+        print()
 
     def load_files(self):
         files = os.listdir(self.directory)
@@ -27,13 +44,16 @@ class FileHandler:
             elif "description" in file.lower():
                 file_type = "description"
             else:
+                print("File '" + file + "' skipped because it has no type (caption or description) in name\n")
                 continue
 
-            if "DE." in file:
-                language = "de"
-            elif "FR." in file:
-                language = "fr"
-            else:
+            language = None
+            for key, value in LANGUAGES.items():
+                if key + "." in file:
+                    language = value
+                    break
+            if language is None:
+                print("File '" + file + "' skipped because it has no valid language in name\n")
                 continue
 
             path = self.directory + "\\" + file
@@ -70,10 +90,10 @@ class YoutubeUploader:
 
     def __get_input_video_id(self):
         self.video_id = input("Enter Youtube video ID: ")
+        print()
 
     def __authorize(self):
         # Disable OAuthlib's HTTPS verification when running locally.
-        # *DO NOT* leave this option enabled in production.
         os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
         # Get credentials and create an API client
@@ -84,12 +104,14 @@ class YoutubeUploader:
             raise "Error - All requested permissions are necessary for the script to run"
 
         self.youtube = googleapiclient.discovery.build(self.API_SERVICE_NAME, self.API_VERSION, credentials=credentials)
+        print()
 
-    def __caption_exists(self, language):
+    def __caption_exists(self):
         if input("Some captions already exist. Replace existing? <Y/N>: ") == "Y":
             self.replace_existing = True
         else:
             self.replace_existing = False
+        print()
 
     def upload_caption(self, file):
         text_file = MediaFileUpload(file.Path)
@@ -132,7 +154,6 @@ class YoutubeUploader:
     def upload_descriptions(self):
         if not self.descriptions:
             return False
-        print(self.descriptions)
         body = {
             "id": self.video_id,
             "localizations": self.descriptions
@@ -171,6 +192,8 @@ def main():
 
         if prepared:
             print("File with type: '" + file.Type + "' and language: '" + file.Language + "' prepared for upload")
+
+        print()
 
     uploaded = youtube_uploader.upload_descriptions()
     if uploaded:

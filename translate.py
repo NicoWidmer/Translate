@@ -5,6 +5,9 @@ import json
 import codecs
 import re
 
+# Add more entries to support additional languages to upload
+languages = ["DE", "ES", "FR", "IT", "JA", "PT-BR", "TR", "ZH"]
+
 
 class FileHandler:
     directory = ""
@@ -97,7 +100,6 @@ def main():
 
     print(formatted_text)
 
-    languages = ["DE", "ES", "FR", "IT", "JA", "PT-BR", "TR", "ZH"]
     for language in languages:
         translated_text = translator.translate_to_language(formatted_text, language)
         translated_text = translator.format_translated_text(translated_text, language)
