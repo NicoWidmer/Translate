@@ -7,8 +7,7 @@ from googleapiclient.http import MediaFileUpload
 from google_auth_oauthlib.flow import InstalledAppFlow
 import secrets
 
-SCOPES = ["https://www.googleapis.com/auth/youtube.readonly",
-          "https://www.googleapis.com/auth/youtube.force-ssl"]
+SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
 File = namedtuple("File", ["Path", "Type", "Language", "Content"])
 
@@ -124,22 +123,22 @@ class YoutubeUploader:
         return True
 
     def prepare_description_upload(self, file):
-        self.descriptions[file.Language] = {"description": file.Content}
+        self.descriptions[file.Language] = {
+            "title": "TITLE",
+            "description": file.Content
+        }
         return True
 
     def upload_descriptions(self):
         if not self.descriptions:
             return False
+        print(self.descriptions)
         body = {
             "id": self.video_id,
-            "snippet": {
-                "title": "TEST",
-                "categoryId": 26,
-                "localized": self.descriptions
-            }
+            "localizations": self.descriptions
         }
         self.youtube.videos().update(
-            part="snippet",
+            part="localizations",
             body=body,
         ).execute()
         return True
