@@ -75,8 +75,11 @@ class YoutubeUploader:
 
     def __init__(self):
         self.state = secrets.token_urlsafe(16)
-        self.__get_input_video_id()
         self.__authorize()
+        valid_video_id = False
+        while not valid_video_id:
+            valid_video_id = self.__get_input_video_id()
+            print()
         self.__generate_caption_list()
 
     def __generate_caption_list(self):
@@ -86,8 +89,34 @@ class YoutubeUploader:
         ).execute()
 
     def __get_input_video_id(self):
-        self.video_id = input("Enter Youtube video ID: ")
-        print()
+        video_id = input("Enter Youtube video ID: ")
+        if self.__check_video_id_validity(video_id):
+            self.video_id = video_id
+            return True
+        else:
+            return False
+
+    def __check_video_id_validity(self, video_id):
+        # Check if the video exists
+        response = self.youtube.videos().list(part="id", id=video_id).execute()
+        if not response.get("items"):
+            print("Invalid Youtube video ID '" + video_id + "'")
+            return False
+
+        # Check if the user has modifying rights
+        # noinspection PyBroadException
+        try:
+            response = self.youtube.videos().update(
+                part="snippet",
+                body={
+                    "id": video_id
+                }
+            ).execute()
+        except Exception:
+            print("You do not have editing permissions on video ID '" + video_id + "'")
+            return False
+
+        return True
 
     def __authorize(self):
         # Disable OAuthlib's HTTPS verification when running locally.
