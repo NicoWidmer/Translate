@@ -37,6 +37,8 @@ class FileHandler:
                 file_type = "caption"
             elif "description" in file.lower():
                 file_type = "description"
+            elif "title" in file.lower():
+                file_type = "title"
             else:
                 print("Skipped - File '" + file + "' has no type (caption or description) in name\n")
                 continue
@@ -66,7 +68,8 @@ class YoutubeUploader:
     state = None
     video_id = None
     youtube = None
-    replace_existing = None
+    replace_existing_captions = None
+    replace_existing_descriptions = None
     caption_list = None
     descriptions = {}
 
@@ -102,9 +105,9 @@ class YoutubeUploader:
 
     def __caption_exists(self):
         if input("Some captions already exist. Replace existing? <Y/N>: ") == "Y":
-            self.replace_existing = True
+            self.replace_existing_captions = True
         else:
-            self.replace_existing = False
+            self.replace_existing_captions = False
         print()
 
     def upload_caption(self, file):
@@ -112,9 +115,9 @@ class YoutubeUploader:
 
         for caption in self.caption_list["items"]:
             if file.Language == caption["snippet"]["language"]:
-                if self.replace_existing is None:
-                    self.__caption_exists(file.Language)
-                if self.replace_existing:
+                if self.replace_existing_captions is None:
+                    self.__caption_exists()
+                if self.replace_existing_captions:
                     self.youtube.captions().update(
                         part="id",
                         body={"id": caption["id"]},
@@ -139,13 +142,69 @@ class YoutubeUploader:
         return True
 
     def prepare_description_upload(self, file):
-        self.descriptions[file.Language] = {
-            "title": "TITLE",
-            "description": file.Content
-        }
+        if file.Language in self.descriptions:
+            if self.descriptions[file.Language] is not None:
+                self.descriptions[file.Language].update({
+                    "description": file.Content
+                })
+        else:
+            self.descriptions[file.Language] = {
+                "description": file.Content
+            }
         return True
 
-    def upload_descriptions(self):
+    def prepare_title_upload(self, file):
+        if file.Language in self.descriptions:
+            if self.descriptions[file.Language] is not None:
+                self.descriptions[file.Language].update({
+                    "title": file.Content
+                })
+        else:
+            self.descriptions[file.Language] = {
+                "title": file.Content
+            }
+        return True
+
+    def __fill_title_and_descriptions(self):
+        request = self.youtube.videos().list(
+            part="localizations",
+            id=self.video_id
+        )
+        response = request.execute()
+
+        localizations = response["items"][0]["localizations"]
+        for language, description in self.descriptions.items():
+            if language in localizations:
+                if self.replace_existing_descriptions is None:
+                    self.__description_exists()
+
+                # Get the texts from video to not override them
+                if not self.replace_existing_descriptions:
+                    description["description"] = localizations[language]["description"]
+                    description["title"] = localizations[language]["title"]
+                # Get the texts from video only if no new texts have been added
+                else:
+                    if "description" not in description:
+                        description["description"] = localizations[language]["description"]
+                    if "title" not in description:
+                        description["title"] = localizations[language]["title"]
+
+            # Set default values if no other exists
+            else:
+                if "description" not in description:
+                    description["description"] = "Description"
+                if "title" not in description:
+                    description["title"] = "Title"
+
+    def __description_exists(self):
+        if input("Some video descriptions already exist. Replace existing? <Y/N>: ") == "Y":
+            self.replace_existing_descriptions = True
+        else:
+            self.replace_existing_descriptions = False
+        print()
+
+    def upload_titles_and_descriptions(self):
+        self.__fill_title_and_descriptions()
         if not self.descriptions:
             return False
         body = {
@@ -176,6 +235,8 @@ def main():
             uploaded = youtube_uploader.upload_caption(file)
         elif file.Type == "description":
             prepared = youtube_uploader.prepare_description_upload(file)
+        elif file.Type == "title":
+            prepared = youtube_uploader.prepare_title_upload(file)
         else:
             raise("Error - Invalid file type: '" + file.Type + "' of file: '" + file.Path + "'")
 
@@ -189,7 +250,7 @@ def main():
 
         print()
 
-    uploaded = youtube_uploader.upload_descriptions()
+    uploaded = youtube_uploader.upload_titles_and_descriptions()
     if uploaded:
         print("Successfully uploaded - Description files")
 

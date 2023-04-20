@@ -42,16 +42,16 @@ class FileHandler:
 class Translator:
     url = "https://api-free.deepl.com/v2/translate"
     auth_key = "8ce20a2c-0e86-4bba-6773-3be52ea7416e:fx"
-    stop_symbol = "🎵"
+    STOP_SYMBOL = "🎵"
     music_content = ""
 
     def extract_music_text(self, text):
         # Don't translate music information (description)
-        self.music_content = text.partition(self.stop_symbol)[1] + text.partition(self.stop_symbol)[2]
+        self.music_content = text.partition(self.STOP_SYMBOL)[1] + text.partition(self.STOP_SYMBOL)[2]
 
     def format_input_text(self, text):
         # Don't translate music information (description)
-        text = text.partition(self.stop_symbol)[0]
+        text = text.partition(self.STOP_SYMBOL)[0]
 
         # Remove line breaks within sentences (translation)
         timestamp_regex = "0:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9],0:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9]"
