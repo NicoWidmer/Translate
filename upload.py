@@ -1,3 +1,4 @@
+import configparser
 import io
 import os
 from collections import namedtuple
@@ -7,21 +8,7 @@ from googleapiclient.http import MediaFileUpload
 from google_auth_oauthlib.flow import InstalledAppFlow
 import secrets
 
-'''
-Add more entries to support additional languages to upload
-Key: Language code in file name (DeepL language code)
-Value: Youtube language code
-'''
-LANGUAGES = {
-    "DE": "de",
-    "ES": "es",
-    "FR": "fr",
-    "IT": "it",
-    "JA": "ja",
-    "PT-BR": "pt-Br",
-    "TR": "tr",
-    "ZH": "zh-Hans"
-}
+languages = {}
 
 SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
@@ -32,8 +19,15 @@ class FileHandler:
     directory = None
     files = []
 
+    def __init__(self):
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+        if 'LANGUAGES' in config:
+            for key, value in config['LANGUAGES'].items():
+                languages[key] = value
+
     def get_input_directory(self):
-        self.directory = input("Enter full path of directory, of files, which need to be uploaded to Youtube: ")
+        self.directory = input("Enter full path of directory, of files, to be uploaded to Youtube: ")
         print()
 
     def load_files(self):
@@ -44,16 +38,16 @@ class FileHandler:
             elif "description" in file.lower():
                 file_type = "description"
             else:
-                print("File '" + file + "' skipped because it has no type (caption or description) in name\n")
+                print("Skipped - File '" + file + "' has no type (caption or description) in name\n")
                 continue
 
             language = None
-            for key, value in LANGUAGES.items():
-                if key + "." in file:
+            for key, value in languages.items():
+                if key.upper() + "." in file:
                     language = value
                     break
             if language is None:
-                print("File '" + file + "' skipped because it has no valid language in name\n")
+                print("Skipped - File '" + file + "' has no valid language in name\n")
                 continue
 
             path = self.directory + "\\" + file
@@ -176,7 +170,7 @@ def main():
         uploaded = None
         prepared = None
 
-        print("Processing file type: '" + file.Type + "' with language: '" + file.Language + "'")
+        print("Processing - File with type: '" + file.Type + "' and language: '" + file.Language + "'")
 
         if file.Type == "caption":
             uploaded = youtube_uploader.upload_caption(file)
@@ -186,18 +180,18 @@ def main():
             raise("Error - Invalid file type: '" + file.Type + "' of file: '" + file.Path + "'")
 
         if uploaded:
-            print("File with type: '" + file.Type + "' and language: '" + file.Language + "' successfully uploaded")
+            print("Successfully uploaded - File with type: '" + file.Type + "' and language: '" + file.Language + "'")
         elif uploaded is False:
-            print("File with type: '" + file.Type + "' and language: '" + file.Language + "' not uploaded")
+            print("Skipped - File with type: '" + file.Type + "' and language: '" + file.Language + "'")
 
         if prepared:
-            print("File with type: '" + file.Type + "' and language: '" + file.Language + "' prepared for upload")
+            print("Prepared for upload - File with type: '" + file.Type + "' and language: '" + file.Language + "'")
 
         print()
 
     uploaded = youtube_uploader.upload_descriptions()
     if uploaded:
-        print("Description files successfully uploaded")
+        print("Successfully uploaded - Description files")
 
 
 if __name__ == "__main__":

@@ -1,3 +1,4 @@
+import configparser
 import os
 import io
 import requests
@@ -5,8 +6,7 @@ import json
 import codecs
 import re
 
-# Add more entries to support additional languages to upload
-languages = ["DE", "ES", "FR", "IT", "JA", "PT-BR", "TR", "ZH"]
+languages = []
 
 
 class FileHandler:
@@ -14,6 +14,12 @@ class FileHandler:
     file_name = ""
     file_extension = ""
     text = ""
+
+    def __init__(self):
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+        for language in config['LANGUAGES']:
+            languages.append(language)
 
     def get_input_text(self):
         source_file_string = input("Enter full path of file, which needs to be translated: ")
@@ -25,7 +31,7 @@ class FileHandler:
         self.text = source_file.read()
 
     def write_to_file(self, text, language):
-        translated_file_path = self.file_name + language + ".txt"
+        translated_file_path = self.file_name + language.upper() + ".txt"
         if os.path.exists(translated_file_path):
             os.remove(translated_file_path)
         translated_file = codecs.open(translated_file_path, "w", "utf-8")
@@ -51,29 +57,23 @@ class Translator:
         timestamp_regex = "0:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9],0:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9]"
         timestamp_location = re.search(timestamp_regex, text)
         if timestamp_location:
-            text = text.replace("\n", " ")  # Remove all new lines and replace with empty string
-            text = re.sub(r"(" + timestamp_regex + " " + ")(.)", r"\1\n\2",
-                          text)  # Add back new line after each timestamp
-            text = re.sub(r"(" + timestamp_regex + " " + ")", r"\n\n\1",
-                          text)  # Add back two new lines before each timestamp
+            # Remove all new lines and replace with empty string
+            text = text.replace("\n", " ")
+            # Add back new line after each timestamp
+            text = re.sub(r"(" + timestamp_regex + " " + ")(.)", r"\1\n\2", text)
+            # Add back two new lines before each timestamp
+            text = re.sub(r"(" + timestamp_regex + " " + ")", r"\n\n\1", text)
             text = text.lstrip("\n")
 
         return text
 
     def translate_to_language(self, text, language):
-        if language == "JA" or language == "TR" or language == "ZH":
-            data = {
-                "auth_key": self.auth_key,
-                "target_lang": language,
-                "text": text
-            }
-        else:
-            data = {
-                "auth_key": self.auth_key,
-                "formality": "less",
-                "target_lang": language,
-                "text": text
-            }
+        data = {
+            "auth_key": self.auth_key,
+            "formality": "prefer_less",
+            "target_lang": language,
+            "text": text
+        }
         request = requests.post(url=self.url, data=data)
         translation = json.loads(request.text)["translations"][0]["text"]
 
@@ -81,7 +81,7 @@ class Translator:
 
     def format_translated_text(self, text, language):
         # No SS!
-        if language == "DE":
+        if language == "de":
             text = text.replace("ß", "ss")
 
         # Append music information after translating (description)
