@@ -7,6 +7,7 @@ import googleapiclient.errors
 from googleapiclient.http import MediaFileUpload
 from google_auth_oauthlib.flow import InstalledAppFlow
 import secrets
+import pathlib
 
 languages = {}
 
@@ -27,12 +28,30 @@ class FileHandler:
                 languages[key] = value
 
     def get_input_directory(self):
-        self.directory = input("Enter full path of directory, of files, to be uploaded to Youtube: ")
-        print()
+        directory = input("Enter full path of directory, of files, to be uploaded to YouTube: ")
+        directory = directory.strip("\"")   # remove double quotes
+        if self.__check_input_directory_validity(directory):
+            self.directory = directory
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def __check_input_directory_validity(directory):
+        try:
+            files = os.listdir(directory)
+            if files is None:
+                print("Error - No files found in directory '" + directory + "'")
+                return False
+            else:
+                return True
+        except (FileNotFoundError, OSError):
+            print("Error - Directory not found: '" + directory + "'")
 
     def load_files(self):
         files = os.listdir(self.directory)
         for file in files:
+            print(file)
             if "caption" in file.lower():
                 file_type = "caption"
             elif "description" in file.lower():
@@ -89,7 +108,7 @@ class YoutubeUploader:
         ).execute()
 
     def __get_input_video_id(self):
-        video_id = input("Enter Youtube video ID: ")
+        video_id = input("Enter YouTube video ID: ")
         if self.__check_video_id_validity(video_id):
             self.video_id = video_id
             return True
@@ -100,7 +119,7 @@ class YoutubeUploader:
         # Check if the video exists
         response = self.youtube.videos().list(part="id", id=video_id).execute()
         if not response.get("items"):
-            print("Invalid Youtube video ID '" + video_id + "'")
+            print("Error - YouTube Video with video ID '" + video_id + "' not found")
             return False
 
         # Check if the user has modifying rights
@@ -113,7 +132,7 @@ class YoutubeUploader:
                 }
             ).execute()
         except Exception:
-            print("You do not have editing permissions on video ID '" + video_id + "'")
+            print("Error - You do not have editing permissions on video ID '" + video_id + "'")
             return False
 
         return True
@@ -249,7 +268,10 @@ class YoutubeUploader:
 
 def main():
     file_handler = FileHandler()
-    file_handler.get_input_directory()
+    valid_directory = False
+    while not valid_directory:
+        valid_directory = file_handler.get_input_directory()
+        print()
     file_handler.load_files()
 
     youtube_uploader = YoutubeUploader()
