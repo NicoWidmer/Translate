@@ -7,7 +7,6 @@ import googleapiclient.errors
 from googleapiclient.http import MediaFileUpload
 from google_auth_oauthlib.flow import InstalledAppFlow
 import secrets
-import pathlib
 
 languages = {}
 
@@ -88,7 +87,6 @@ class YoutubeUploader:
     video_id = None
     youtube = None
     replace_existing_captions = None
-    replace_existing_descriptions = None
     caption_list = None
     descriptions = {}
 
@@ -223,33 +221,31 @@ class YoutubeUploader:
         localizations = response["items"][0]["localizations"]
         for language, description in self.descriptions.items():
             if language in localizations:
-                if self.replace_existing_descriptions is None:
-                    self.__description_exists()
 
-                # Get the texts from video to not override them
-                if not self.replace_existing_descriptions:
+                # Use description from YouTube if it doesn't exist in files
+                if "description" not in description:
                     description["description"] = localizations[language]["description"]
-                    description["title"] = localizations[language]["title"]
-                # Get the texts from video only if no new texts have been added
-                else:
-                    if "description" not in description:
+
+                # Use description from YouTube if user wants to keep it
+                elif localizations[language]["description"] != description["description"]:
+                    if input("Video description of language '" + language + "' already exist. Replace existing? <Y/N>: ") == "N":
                         description["description"] = localizations[language]["description"]
-                    if "title" not in description:
+
+                # Use description from YouTube if it doesn't exist in files
+                if "title" not in description:
+                    description["title"] = localizations[language]["title"]
+
+                # Use title from YouTube if user wants to keep it
+                if localizations[language]["title"] != description["title"]:
+                    if input("Video title of language '" + language + "' already exist. Replace existing? <Y/N>: ") == "N":
                         description["title"] = localizations[language]["title"]
 
-            # Set default values if no other exists
             else:
+                # Set default values if no other exists
                 if "description" not in description:
                     description["description"] = "Description"
                 if "title" not in description:
                     description["title"] = "Title"
-
-    def __description_exists(self):
-        if input("Some video descriptions already exist. Replace existing? <Y/N>: ") == "Y":
-            self.replace_existing_descriptions = True
-        else:
-            self.replace_existing_descriptions = False
-        print()
 
     def upload_titles_and_descriptions(self):
         self.__fill_title_and_descriptions()

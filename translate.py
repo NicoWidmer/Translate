@@ -23,6 +23,7 @@ class FileHandler:
 
     def get_input_text(self):
         source_file_string = input("Enter full path of file, which needs to be translated: ")
+        source_file_string = source_file_string.strip("\"")  # remove double quotes
         self.directory = os.path.dirname(source_file_string)
         self.file_name = os.path.splitext(source_file_string)[0]
         self.file_extension = os.path.splitext(source_file_string)[1]

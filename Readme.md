@@ -23,7 +23,7 @@ $ pip install -r requirements.txt
 To translate caption or description files, run the translate.py script and follow the instructions displayed on the screen:
 ```
 $ cd /path/to/project-folder 
-$ py .\translate.py
+$ py translate.py
 ```
 Note: File names should contain one of the following words to identify the type for uploading:
 * caption
@@ -34,7 +34,7 @@ Note: File names should contain one of the following words to identify the type 
 To upload caption or description files, run the upload.py script and follow the instructions displayed on the screen:
 ```
 $ cd /path/to/project-folder 
-$ py .\upload.py
+$ py upload.py
 ```
 Note: File names should contain one of the languages from the `config.ini` file at the end of the name (automatically added in the `translate.py` script). Additionally, file names should contain one of the following words to identify the type for uploading:
 * caption
