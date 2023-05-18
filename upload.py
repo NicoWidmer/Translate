@@ -58,7 +58,7 @@ class FileHandler:
             elif "title" in file.lower():
                 file_type = "title"
             else:
-                print("Skipped - File '" + file + "' has no type (caption or description) in name\n")
+                print("Skipped - Invalid file type of file: '" + file.Path + "' - must contain one of the following: 'caption', 'description', 'title'\n")
                 continue
 
             language = None
@@ -144,7 +144,8 @@ class YoutubeUploader:
             flow = InstalledAppFlow.from_client_secrets_file(self.CLIENT_SECRETS_FILE, SCOPES, state="state")
             credentials = flow.run_local_server()
         except Exception:
-            raise "Error - All requested permissions are necessary for the script to run"
+            print("Error - All requested permissions are necessary for the script to run")
+            raise
 
         self.youtube = googleapiclient.discovery.build(self.API_SERVICE_NAME, self.API_VERSION, credentials=credentials)
         print()
@@ -285,7 +286,8 @@ def main():
         elif file.Type == "title":
             prepared = youtube_uploader.prepare_title_upload(file)
         else:
-            raise("Error - Invalid file type: '" + file.Type + "' of file: '" + file.Path + "'")
+            print("Error - Invalid file type: '" + file.Type + "' of file: '" + file.Path + "' - must contain one of the following: 'caption', 'description', 'title'")
+            raise
 
         if uploaded:
             print("Successfully uploaded - File with type: '" + file.Type + "' and language: '" + file.Language + "'")

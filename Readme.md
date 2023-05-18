@@ -43,6 +43,10 @@ Note: File names should contain one of the languages from the `config.ini` file 
 
 Captions, descriptions and titles can be uploaded together from the same folder or separately.
 
-### Changing languages
+## Configuration
 
+### Changing languages
 You can add or remove languages in the config.ini file
+
+### Changing End Translation Symbol
+The script only translates up to the end_translation_character set in the config.ini file
