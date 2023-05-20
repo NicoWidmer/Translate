@@ -33,11 +33,9 @@ class FileHandler:
         try:
             source_file = io.open(source_file_string, mode="r", encoding="utf-8")
         except FileNotFoundError:
-            print("Error - File not found: '" + source_file_string + "'")
-            raise
+            raise FileNotFoundError("Error - File not found: '" + source_file_string + "'")
         except PermissionError:
-            print("Error - Not a file or no permission: '" + source_file_string + "'")
-            raise
+            raise PermissionError("Error - Not a file or no permission: '" + source_file_string + "'")
         self.text = source_file.read()
 
     def write_to_file(self, text, language):
@@ -47,6 +45,7 @@ class FileHandler:
         translated_file = codecs.open(translated_file_path, "w", "utf-8")
         translated_file.write(text)
         translated_file.close()
+
 
 
 class Translator:

@@ -74,8 +74,15 @@ class FileHandler:
             source_file = io.open(path, mode="r", encoding="utf-8")
             content = source_file.read()
 
+            if file_type == "title" and len(content) > 100:
+                raise TitleLengthException("Error - File '" + file + "' has a too many characters (" + str(len(content)) + ") - Limit is 100")
+
             new_file = File(path, file_type, language, content)
             self.files.append(new_file)
+
+
+class TitleLengthException(Exception):
+    pass
 
 
 class YoutubeUploader:
@@ -144,8 +151,7 @@ class YoutubeUploader:
             flow = InstalledAppFlow.from_client_secrets_file(self.CLIENT_SECRETS_FILE, SCOPES, state="state")
             credentials = flow.run_local_server()
         except Exception:
-            print("Error - All requested permissions are necessary for the script to run")
-            raise
+            raise PermissionDeniedException
 
         self.youtube = googleapiclient.discovery.build(self.API_SERVICE_NAME, self.API_VERSION, credentials=credentials)
         print()
@@ -228,7 +234,7 @@ class YoutubeUploader:
                     description["description"] = localizations[language]["description"]
 
                 # Use description from YouTube if user wants to keep it
-                elif localizations[language]["description"] != description["description"]:
+                elif localizations[language]["description"] != description["description"] and localizations[language]["description"] != "Description":
                     if input("Video description of language '" + language + "' already exist. Replace existing? <Y/N>: ") == "N":
                         description["description"] = localizations[language]["description"]
 
@@ -237,7 +243,7 @@ class YoutubeUploader:
                     description["title"] = localizations[language]["title"]
 
                 # Use title from YouTube if user wants to keep it
-                if localizations[language]["title"] != description["title"]:
+                if localizations[language]["title"] != description["title"] and localizations[language]["title"] != "Title":
                     if input("Video title of language '" + language + "' already exist. Replace existing? <Y/N>: ") == "N":
                         description["title"] = localizations[language]["title"]
 
@@ -256,11 +262,16 @@ class YoutubeUploader:
             "id": self.video_id,
             "localizations": self.descriptions
         }
+        print (body)
         self.youtube.videos().update(
             part="localizations",
             body=body,
         ).execute()
         return True
+
+
+class PermissionDeniedException(Exception):
+    """Error - All requested permissions are necessary for the script to run"""
 
 
 def main():
@@ -285,9 +296,6 @@ def main():
             prepared = youtube_uploader.prepare_description_upload(file)
         elif file.Type == "title":
             prepared = youtube_uploader.prepare_title_upload(file)
-        else:
-            print("Error - Invalid file type: '" + file.Type + "' of file: '" + file.Path + "' - must contain one of the following: 'caption', 'description', 'title'")
-            raise
 
         if uploaded:
             print("Successfully uploaded - File with type: '" + file.Type + "' and language: '" + file.Language + "'")
