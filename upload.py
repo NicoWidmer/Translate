@@ -226,6 +226,7 @@ class YoutubeUploader:
         response = request.execute()
 
         localizations = response["items"][0]["localizations"]
+
         for language, description in self.descriptions.items():
             if language in localizations:
 
@@ -253,6 +254,14 @@ class YoutubeUploader:
                     description["description"] = "Description"
                 if "title" not in description:
                     description["title"] = "Title"
+
+        #  Fill in missing languages to not delete them when doing the update API request
+        for language, localization in localizations.items():
+            if language not in self.descriptions:
+                self.descriptions[language] = {
+                    "description": localization["description"],
+                    "title": localization["title"]
+                }
 
     def upload_titles_and_descriptions(self):
         self.__fill_title_and_descriptions()
