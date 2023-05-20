@@ -262,7 +262,6 @@ class YoutubeUploader:
             "id": self.video_id,
             "localizations": self.descriptions
         }
-        print (body)
         self.youtube.videos().update(
             part="localizations",
             body=body,

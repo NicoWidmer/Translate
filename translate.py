@@ -47,7 +47,6 @@ class FileHandler:
         translated_file.close()
 
 
-
 class Translator:
     url = "https://api-free.deepl.com/v2/translate"
     auth_key = "8ce20a2c-0e86-4bba-6773-3be52ea7416e:fx"
