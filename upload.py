@@ -21,12 +21,12 @@ class FileHandler:
 
     def __init__(self):
         config = configparser.ConfigParser()
-        config.read('config.ini')
-        if 'LANGUAGES' in config:
-            for key, value in config['LANGUAGES'].items():
+        config.read("config.ini")
+        if "LANGUAGES" in config:
+            for key, value in config["LANGUAGES"].items():
                 languages[key] = value
 
-    def get_input_directory(self):
+    def read_input_directory(self):
         directory = input("Enter full path of directory, of files, to be uploaded to YouTube: ")
         directory = directory.strip("\"")   # remove double quotes
         if self.__check_input_directory_validity(directory):
@@ -39,13 +39,15 @@ class FileHandler:
     def __check_input_directory_validity(directory):
         try:
             files = os.listdir(directory)
-            if files is None:
-                print("Error - No files found in directory '" + directory + "'")
-                return False
-            else:
-                return True
         except (FileNotFoundError, OSError):
             print("Error - Directory not found: '" + directory + "'")
+            return False
+
+        if files is None:
+            print("Error - No files found in directory '" + directory + "'")
+            return False
+
+        return True
 
     def load_files(self):
         files = os.listdir(self.directory)
@@ -75,13 +77,16 @@ class FileHandler:
             content = source_file.read()
 
             if file_type == "title" and len(content) > 100:
-                raise TitleLengthException("Error - File '" + file + "' has a too many characters (" + str(len(content)) + ") - Limit is 100")
+                raise ContentLengthException("Error - File '" + file + "' of type: '" + file_type + "' has a too many characters (" + str(len(content)) + ") - Limit is 100")
+
+            if len(content) == 0:
+                raise ContentLengthException("Error - File '" + file + "' of type: '" + file_type + "' is empty")
 
             new_file = File(path, file_type, language, content)
             self.files.append(new_file)
 
 
-class TitleLengthException(Exception):
+class ContentLengthException(Exception):
     pass
 
 
@@ -286,17 +291,17 @@ def main():
     file_handler = FileHandler()
     valid_directory = False
     while not valid_directory:
-        valid_directory = file_handler.get_input_directory()
+        valid_directory = file_handler.read_input_directory()
         print()
     file_handler.load_files()
 
     youtube_uploader = YoutubeUploader()
 
     for file in file_handler.files:
-        uploaded = None
         prepared = None
+        uploaded = None
 
-        print("Processing - File with type: '" + file.Type + "' and language: '" + file.Language + "'")
+        print("Processing - File of type: '" + file.Type + "' and language: '" + file.Language + "'")
 
         if file.Type == "caption":
             uploaded = youtube_uploader.upload_caption(file)
@@ -306,12 +311,12 @@ def main():
             prepared = youtube_uploader.prepare_title_upload(file)
 
         if uploaded:
-            print("Successfully uploaded - File with type: '" + file.Type + "' and language: '" + file.Language + "'")
+            print("Successfully uploaded - File of type: '" + file.Type + "' and language: '" + file.Language + "'")
         elif uploaded is False:
-            print("Skipped - File with type: '" + file.Type + "' and language: '" + file.Language + "'")
+            print("Skipped - File of type: '" + file.Type + "' and language: '" + file.Language + "'")
 
         if prepared:
-            print("Prepared for upload - File with type: '" + file.Type + "' and language: '" + file.Language + "'")
+            print("Prepared for upload - File of type: '" + file.Type + "' and language: '" + file.Language + "'")
 
         print()
 
