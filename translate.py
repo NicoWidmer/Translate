@@ -6,8 +6,6 @@ import json
 import codecs
 import re
 
-languages = []
-
 
 class FileHandler:
     directory = ""
@@ -15,12 +13,13 @@ class FileHandler:
     file_extension = ""
     text = ""
     end_translation_character = ""
+    languages = []
 
     def read_config_file(self, config_file):
         config = configparser.ConfigParser()
         config.read(config_file, encoding="utf-8")
         for language in config["LANGUAGES"]:
-            languages.append(language)
+            self.languages.append(language)
         self.end_translation_character = config.get("PROPERTIES", "end_translation_character")
 
     def get_input_text(self):
@@ -113,7 +112,7 @@ def main():
 
     print(formatted_text)
 
-    for language in languages:
+    for language in file_handler.languages:
         print("Translating - language: '" + language + "'")
 
         translated_text = translator.translate_to_language(formatted_text, language)
