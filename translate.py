@@ -16,9 +16,9 @@ class FileHandler:
     text = ""
     end_translation_character = ""
 
-    def read_config_file(self):
+    def read_config_file(self, config_file):
         config = configparser.ConfigParser()
-        config.read("config.ini", encoding="utf-8")
+        config.read(config_file, encoding="utf-8")
         for language in config["LANGUAGES"]:
             languages.append(language)
         self.end_translation_character = config.get("PROPERTIES", "end_translation_character")
@@ -102,8 +102,9 @@ class Translator:
 
 
 def main():
+    config_file = "config.ini"
     file_handler = FileHandler()
-    file_handler.read_config_file()
+    file_handler.read_config_file(config_file)
     file_handler.get_input_text()
 
     translator = Translator(file_handler.end_translation_character)
