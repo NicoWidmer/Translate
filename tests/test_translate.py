@@ -85,13 +85,14 @@ def mock_config_ini_file(tmp_path):
     return file_path
 
 
-def test_read_config_file_languages(mock_config_ini_file):
+def test_no_incorrect_languages_loaded(mock_config_ini_file):
     file_handler = FileHandler()
     file_handler.read_config_file(mock_config_ini_file)
+    mock_config_ini_string = mock_config_ini_file.read_text(encoding='utf-8')
     languages_correct = False
 
     for language in file_handler.languages:
-        if language in mock_config_ini_file.read_text(encoding='utf-8'):
+        if language in mock_config_ini_string:
             languages_correct = True
         else:
             languages_correct = False
@@ -100,7 +101,7 @@ def test_read_config_file_languages(mock_config_ini_file):
     assert languages_correct
 
 
-def test_read_config_file_end_translation_char(mock_config_ini_file):
+def test_end_translation_character_loaded(mock_config_ini_file):
     file_handler = FileHandler()
     file_handler.read_config_file(mock_config_ini_file)
 
