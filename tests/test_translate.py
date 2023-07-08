@@ -30,7 +30,7 @@ def mock_config_ini_file_string():
                    "nb = no\n" \
                    "nl = nl\n" \
                    "pl = pl\n" \
-                   "pt - br = pt - Br\n" \
+                   "pt-br = pt-Br\n" \
                    "ro = ro\n" \
                    "ru = ru\n" \
                    "sv = sv\n" \
@@ -43,6 +43,7 @@ def mock_config_ini_file_string():
                    "end_translation_character = 🎵\n"
 
     return file_content
+
 
 @pytest.fixture
 def mock_config_ini_file(tmp_path):
@@ -67,19 +68,19 @@ def mock_config_ini_file(tmp_path):
                    "nb = no\n" \
                    "nl = nl\n" \
                    "pl = pl\n" \
-                   "pt - br = pt - Br\n" \
+                   "pt-br = pt-Br\n" \
                    "ro = ro\n" \
                    "ru = ru\n" \
                    "sv = sv\n" \
                    "tr = tr\n" \
                    "uk = uk\n" \
-                   "zh = zh - Hans\n" \
+                   "zh = zh-Hans\n" \
                    "\n" \
                    "; Nothing will get translated after this character\n" \
                    "[PROPERTIES]\n" \
                    "end_translation_character = 🎵\n"
 
-    file_path.write_text(file_content)
+    file_path.write_text(file_content, encoding='utf-8')
 
     return file_path
 
@@ -90,7 +91,7 @@ def test_read_config_file_languages(mock_config_ini_file):
     languages_correct = True
 
     for language in file_handler.languages:
-        if language not in mock_config_ini_file:
+        if language not in mock_config_ini_file.read_text(encoding='utf-8'):
             languages_correct = False
             break
 
@@ -101,4 +102,4 @@ def test_read_config_file_end_translation_char(mock_config_ini_file):
     file_handler = FileHandler()
     file_handler.read_config_file(mock_config_ini_file)
 
-    assert file_handler.end_translation_character in mock_config_ini_file
+    assert file_handler.end_translation_character in mock_config_ini_file.read_text(encoding='utf-8')
