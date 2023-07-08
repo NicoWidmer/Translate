@@ -2,3 +2,6 @@
 .idea/workspace.xml
 .idea/Translate.iml
 .idea/shelf/
+__pycache__/
+tests/__pycache__/
+tests/.pytest_cache/
