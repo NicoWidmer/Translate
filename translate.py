@@ -67,7 +67,7 @@ class Translator:
         timestamp_regex = "0:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9],0:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9]"
         timestamp_location = re.search(timestamp_regex, text)
         if timestamp_location:
-            # Remove all new lines and replace with empty string
+            # Remove all new lines and replace with empFty string
             text = text.replace("\n", " ")
             # Add back new line after each timestamp
             text = re.sub(r"(" + timestamp_regex + " " + ")(.)", r"\1\n\2", text)
