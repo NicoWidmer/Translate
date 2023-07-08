@@ -47,7 +47,7 @@ def mock_config_ini_file():
     return file_content
 
 
-def read_config_file_test(ini_file=mock_config_ini_file()):
+def read_config_file_languages_test(ini_file=mock_config_ini_file()):
     file_handler = FileHandler()
     file_handler.read_config_file(ini_file)
     languages_correct = True
@@ -58,3 +58,10 @@ def read_config_file_test(ini_file=mock_config_ini_file()):
             break
 
     assert languages_correct
+
+
+def read_config_file_end_translation_char_test(ini_file=mock_config_ini_file()):
+    file_handler = FileHandler()
+    file_handler.read_config_file(ini_file)
+
+    assert file_handler.end_translation_character in ini_file
