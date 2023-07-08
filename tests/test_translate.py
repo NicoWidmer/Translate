@@ -70,7 +70,7 @@ def mock_config_ini_file(tmp_path):
                    "[PROPERTIES]\n" \
                    "end_translation_character = 🎵\n"
 
-    file_path.write_text(file_content, encoding='utf-8')
+    file_path.write_text(file_content, encoding="utf-8")
 
     return file_path
 
@@ -78,11 +78,11 @@ def mock_config_ini_file(tmp_path):
 def test_no_incorrect_languages_loaded(mock_config_ini_file):
     file_handler = FileHandler()
     file_handler.read_config_file(mock_config_ini_file)
-    mock_config_ini_string = mock_config_ini_file.read_text(encoding='utf-8')
+    mock_config_ini_string = mock_config_ini_file.read_text(encoding="utf-8")
     languages_correct = False
 
     for language in file_handler.languages:
-        if language + ' ' in mock_config_ini_string:
+        if language + " " in mock_config_ini_string:
             languages_correct = True
         else:
             languages_correct = False
@@ -96,4 +96,4 @@ def test_end_translation_character_loaded(mock_config_ini_file):
     file_handler.read_config_file(mock_config_ini_file)
 
     assert file_handler.end_translation_character != ""
-    assert file_handler.end_translation_character in mock_config_ini_file.read_text(encoding='utf-8')
+    assert file_handler.end_translation_character in mock_config_ini_file.read_text(encoding="utf-8")
