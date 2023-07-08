@@ -94,7 +94,7 @@ def test_read_config_file_languages(mock_config_ini_file):
         if language in mock_config_ini_file.read_text(encoding='utf-8'):
             languages_correct = True
         else:
-            languages_correct = True
+            languages_correct = False
             break
 
     assert languages_correct
