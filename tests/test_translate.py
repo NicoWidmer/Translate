@@ -10,11 +10,7 @@ def file_handler():
 
 @pytest.fixture
 def mock_config_ini_file_string():
-    file_content = ";; Add more entries to support additional languages to upload\n" \
-                   ";; Left: Language code in file name (DeepL language code)\n" \
-                   ";; Right: Youtube language code\n" \
-                   "\n" \
-                   "[LANGUAGES]\n" \
+    file_content = "[LANGUAGES]\n" \
                    "bg = bg\n" \
                    "cs = cs\n" \
                    "de = de\n" \
@@ -38,7 +34,6 @@ def mock_config_ini_file_string():
                    "uk = uk\n" \
                    "zh = zh - Hans\n" \
                    "\n" \
-                   "; Nothing will get translated after this character\n" \
                    "[PROPERTIES]\n" \
                    "end_translation_character = 🎵\n"
 
@@ -48,11 +43,7 @@ def mock_config_ini_file_string():
 @pytest.fixture
 def mock_config_ini_file(tmp_path):
     file_path = tmp_path / "config.ini"
-    file_content = ";; Add more entries to support additional languages to upload\n" \
-                   ";; Left: Language code in file name (DeepL language code)\n" \
-                   ";; Right: Youtube language code\n" \
-                   "\n" \
-                   "[LANGUAGES]\n" \
+    file_content = "[LANGUAGES]\n" \
                    "bg = bg\n" \
                    "cs = cs\n" \
                    "de = de\n" \
@@ -76,7 +67,6 @@ def mock_config_ini_file(tmp_path):
                    "uk = uk\n" \
                    "zh = zh-Hans\n" \
                    "\n" \
-                   "; Nothing will get translated after this character\n" \
                    "[PROPERTIES]\n" \
                    "end_translation_character = 🎵\n"
 
@@ -92,7 +82,7 @@ def test_no_incorrect_languages_loaded(mock_config_ini_file):
     languages_correct = False
 
     for language in file_handler.languages:
-        if language in mock_config_ini_string:
+        if language + ' ' in mock_config_ini_string:
             languages_correct = True
         else:
             languages_correct = False
