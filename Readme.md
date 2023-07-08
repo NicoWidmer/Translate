@@ -50,3 +50,10 @@ You can add or remove languages in the config.ini file
 
 ### Changing End Translation Symbol
 The script only translates up to the end_translation_character set in the config.ini file
+
+## Unit Tests
+To run the unit tests, navigate to the tests folder and run pytest:
+```
+$ cd /path/to/project-folder/tests
+$ pytest
+```
