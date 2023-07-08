@@ -95,4 +95,5 @@ def test_end_translation_character_loaded(mock_config_ini_file):
     file_handler = FileHandler()
     file_handler.read_config_file(mock_config_ini_file)
 
+    assert file_handler.end_translation_character != ""
     assert file_handler.end_translation_character in mock_config_ini_file.read_text(encoding='utf-8')
